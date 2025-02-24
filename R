@@ -1,0 +1,52 @@
+Connecting R Studio and MongoDB (Example Queries)
+ 
+#One time installation only
+install.packages("mongolite")
+ 
+#Always start with library()
+library(mongolite)
+ 
+#Create new database and collection
+m=mongo("Faculty",url = "mongodb://localhost:27017/DS")
+ 
+#Insert one row at a time
+m$insert('{"Sl.No":1,"Name":"Dr. Anju","Designation":"Asst Prof","Gender":"F"}')
+m$insert('{"Sl.No":2,"Name":"Dr. Varsha","Designation":"Asst Prof","Gender":"F"}')
+m$insert('{"Sl.No":3,"Name":"Dr. Manu","Designation":"Asso Prof","Gender":"M"}')
+ 
+#Some Operations on collection “Faculty”
+m$find('{"Gender":"F"}')
+m$count()
+m$find('{"Name":"Dr. Anju"}')
+m$find('{}')  # Displays all rows of collection “Faculty”
+m$remove('{"Gender":"M"}') # Removes all rows of collection “Faculty” with gender “M”
+m$update('{"Name":"Dr. Anju"}','{"$set":{"Designation":"Asso Prof"}}')
+ 
+#Create new collection “Student” with same database
+s=mongo("Student",url = "mongodb://localhost:27017/DS")
+s$insert('{"RegNo":12222,"Name":"Gokul","Class/Section":"6B","Gender":"m"}')
+ 
+#Connecting with already existing collection and database
+t=mongo(collection="sem6B",db="DSE",url="mongodb://localhost:27017")
+s=mongo(collection="Student",db="DS",url="mongodb://localhost:27017")
+#Operations on Existing collections and databases
+t$find('{"Gender":"M"}')
+s$count()
+s$remove('{"Gender":"m"}')
+s$insert('{"RegNo":12223,"Name":"Arya","Class/Section":"6A","Gender":"F"}')
+s$update('{"Gender":"F"}','{"$set":{"Marks":90}}')
+s$find('{}')
+s$update('{"Gender":"m"}','{"$set":{"Gender":"M"}}')
+ 
+#One variable should be connected to each collection
+Here s is connected to “student” collection, m is connected to “Faculty” collection, t is connected to “sem6B” collection.
+ 
+#Add new column/field to existing collection (Marks column is added here)
+s$insert('{"RegNo":12224,"Name":"Varun","Class/Section":"6B","Gender":"M","Marks":61}')
+ 
+#Sorting
+#Ascending Order
+s$find(sort = '{"Marks":1}')
+ 
+#Descending Order
+s$find(sort = '{"Marks":-1}')
