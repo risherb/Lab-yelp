@@ -1,0 +1,12 @@
+#include <stdio.h>
+#include <omp. h>
+int main t
+#pragma omp parallel num_threads (2)
+int thread_id_outer = omp_get_thread_num () ;
+printf("Outer Parallel Region: Thread ID = 8d\n", thread id_outer) ;
+#pragma omp parallel num_threads (2)
+int thread_id inner = omp_get_thread_num () ;
+printf ("Inner Parallel Region: Thread ID = id\n", thread_id_ inner);
+}
+return 0;
+}
