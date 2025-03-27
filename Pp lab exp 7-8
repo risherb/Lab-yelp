@@ -1,0 +1,94 @@
+Aim: To implement programs based on nested parallelism and flush directive.
+Assignment 1: Write a Program in OpenMP to demonstrate nested parallelism.
+
+==============================================================================================================================================================
+Assignment 2: Write a Program in OpenMP to demonstrate flush directive using two threads.
+#include <stdio.h>
+#include <omp.h>
+ 
+int main() {
+   int flag = 0;  
+   int data = 0;  
+ 
+   #pragma omp parallel sections num_threads(2)
+   {
+       // Producer section (Thread 0)
+       #pragma omp section
+       {
+           data = 100;  
+           printf("Producer: Data set to %d\n", data);
+ 
+           flag = 1;  
+           #pragma omp flush(flag, data)  
+       }
+ 
+       // Consumer section (Thread 1)
+       #pragma omp section
+       {
+           while (flag == 0) {
+               #pragma omp flush(flag)  
+           }
+ 
+           #pragma omp flush(data)  
+           printf("Consumer: Data received as %d\n", data);
+       }
+   }
+ 
+   return 0;
+}
+
+
+exp 8:
+
+Aim: To implement programs based on Threadprivate and Copyprivate Clause.
+Assignment 1: Write a Program in OpenMP to demonstrate difference between threadprivate and private clause.
+#include <stdio.h>
+#include <omp.h>
+// Global variable declared as threadprivate
+int thread_var;
+#pragma omp threadprivate(thread_var)
+ 
+int main() {
+   int private_var = 0; // This will be private inside the parallel region
+ 
+   // First Parallel Region
+   #pragma omp parallel num_threads(2) private(private_var)
+   {
+       int thread_id = omp_get_thread_num();
+       
+       // Initialize private and threadprivate variables
+       private_var = thread_id + 10;
+       thread_var = thread_id + 100;
+       
+       printf("Thread %d - First Parallel: private_var = %d, thread_var = %d\n", thread_id, private_var, thread_var);
+   }
+ 
+   // Second Parallel Region
+   #pragma omp parallel num_threads(2)
+   {
+       int thread_id = omp_get_thread_num();
+       
+       printf("Thread %d - Second Parallel: private_var = %d, thread_var = %d\n", thread_id, private_var, thread_var);
+   }
+ 
+   return 0;
+}
+==============================================================================================================================================================
+Assignment 2: Write a Program in OpenMP to demonstrate the working of CopyPrivate clause using 4 threads.
+• #include <stdio.h>
+• #include <omp.h>
+• int main() {
+•    int shared_value;  // This will be shared among threads
+•    #pragma omp parallel num_threads(4)
+•    {
+•        #pragma omp single copyprivate(shared_value)
+•        {
+•            shared_value = 42;  // One thread initializes the value
+•            printf("Master thread setting shared_value = %d\n", shared_value);
+•        }
+•        // All threads now receive shared_value = 42
+•        printf("Thread %d received shared_value = %d\n", omp_get_thread_num(), shared_value);
+•    }
+•    return 0;
+• }
+==============================================================================================================================================================
