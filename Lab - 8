@@ -1,0 +1,40 @@
+Step 3: Check the latest CUDA version using the below command :
+     !nvcc --version
+ 
+(Write the output of this step in lab manual)
+Step 4: Check if CUDA is available :
+import torch
+ 
+if torch.cuda.is_available():
+    gpu_info = !nvidia-smi
+    gpu_info = '\n'.join(gpu_info)
+    print("GPU Information:")
+    print(gpu_info)
+else:
+    print("CUDA is not available. You may need to enable GPU acceleration.")
+ 
+(Write the output of above instruction in lab manual)
+Step 5 : Install extension that allows users to run CUDA C/C++ code directly within Jupyter notebooks.
+pip install nvcc4jupyter
+Step 6 : Load nvcc4jupyter extension.
+%load_ext nvcc4jupyter
+Step 7 : CUDA code to print Hello from each block
+%%writefile hello.cu
+#include <stdio.h>
+__global__ void hello() {
+   printf("Hello from block: %u, thread: %u\n", blockIdx.x, threadIdx.x);
+}
+ 
+int main() {
+   hello<<<2, 2>>>();  // Launch kernel with 2 blocks, 2 threads each
+   cudaDeviceSynchronize();  // Ensure GPU execution completes
+ 
+   return 0;
+}
+ 
+Execution Step:
+!nvcc -arch=sm_75 hello.cu -o hello
+!./hello
+ 
+(Write the output of above instruction in lab manual)
+ 
