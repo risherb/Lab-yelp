@@ -1,0 +1,104 @@
+Step 1 : Install extension that allows users to run CUDA C/C++ code directly within Jupyter notebooks.
+pip install nvcc4jupyter
+Step 2 : Load nvcc4jupyter extension.
+%load_ext nvcc4jupyter
+Step 3 : CUDA code for addition of two numbers.
+ 
+%%writefile Addition.cu
+ 
+#include <stdio.h>
+ 
+__global__ void Addition(int *a, int *b, int *c) {
+   *c = *a + *b;
+}
+ 
+int main() {
+   int a, b, c;
+   int *dev_a, *dev_b, *dev_c;
+   int size = sizeof(int);
+ 
+   cudaMalloc((void**)&dev_a, size);
+   cudaMalloc((void**)&dev_b, size);
+   cudaMalloc((void**)&dev_c, size);
+ 
+   a = 30;
+   b = 6;
+ 
+   cudaMemcpy(dev_a, &a, size, cudaMemcpyHostToDevice);  
+   cudaMemcpy(dev_b, &b, size, cudaMemcpyHostToDevice);  
+ 
+   Addition<<<1, 1>>>(dev_a, dev_b, dev_c);
+   cudaMemcpy(&c, dev_c, size, cudaMemcpyDeviceToHost);
+ 
+   cudaFree(dev_a);
+   cudaFree(dev_b);
+   cudaFree(dev_c);
+ 
+   printf("Result of addition is:%d\n", c);
+ 
+   return 0;
+}
+ 
+Execution Step:
+!nvcc -arch=sm_75 Addition.cu -o Addition
+!./Addition
+Assignment 2: Implement a program in CUDA that calculates the sum of two arrays on the GPU and then transfers the result back to the host for printing.
+            %%writefile addArrays.cu
+#include <stdio.h>
+ 
+// Kernel function to add two arrays element-wise
+ 
+__global__ void addArrays(int *a, int *b, int *c, int size) {
+   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+   if (idx < size) {
+       c[idx] = a[idx] + b[idx];
+   }
+}
+ 
+int main() {
+   const int size = 5;
+   int a[size] = {1, 2, 3, 4, 5};
+   int b[size] = {10, 20, 30, 40, 50};
+   int c[size]; // Result array
+ 
+   int *d_a, *d_b, *d_c; // Device arrays
+ 
+   // Allocate memory on the device
+   cudaMalloc((void**)&d_a, size * sizeof(int));
+   cudaMalloc((void**)&d_b, size * sizeof(int));
+   cudaMalloc((void**)&d_c, size * sizeof(int));
+ 
+   // Transfer data from host to device
+   cudaMemcpy(d_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
+   cudaMemcpy(d_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
+ 
+   // Define grid and block dimensions
+   int threadsPerBlock = 256;
+   int blocksPerGrid = (size + threadsPerBlock - 1) / threadsPerBlock;
+ 
+   // Launch kernel
+   addArrays<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, size);
+ 
+   // Wait for kernel to finish
+   cudaDeviceSynchronize();
+ 
+   // Transfer result from device to host
+   cudaMemcpy(c, d_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+ 
+   // Print the result
+   printf("Result of adding two arrays is :\n");
+   for (int i = 0; i < size; ++i) {
+       printf("%d + %d = %d\n", a[i], b[i], c[i]);
+   }
+ 
+   // Free device memory
+   cudaFree(d_a);
+   cudaFree(d_b);
+   cudaFree(d_c);
+ 
+   return 0;
+}
+ 
+Execution Step:
+!nvcc -arch=sm_75 addArrays.cu -o addArrays.cu
+!./addArrays
